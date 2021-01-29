@@ -10,9 +10,6 @@ import org.w3c.dom.get
 import org.w3c.dom.parsing.DOMParser
 import org.w3c.fetch.Response
 import kotlin.coroutines.*
-import kotlin.js.Promise
-import kotlin.reflect.cast
-import kotlin.reflect.safeCast
 
 object CS : CoroutineScope {
     private val job = SupervisorJob()
