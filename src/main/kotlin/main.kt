@@ -11,6 +11,8 @@ import org.w3c.dom.parsing.DOMParser
 import org.w3c.fetch.Response
 import kotlin.coroutines.*
 import kotlin.js.Promise
+import kotlin.reflect.cast
+import kotlin.reflect.safeCast
 
 object CS : CoroutineScope {
     private val job = SupervisorJob()
@@ -71,12 +73,12 @@ suspend fun fetchAvailability(manufacturer: String): List<Availability> {
 /**
  * @return map mapping Product.id to Availability for that product.
  */
-suspend fun CoroutineScope.fetchAvailabilities(manufacturers: Set<String>): Map<String, Availability> {
+suspend fun fetchAvailabilities(manufacturers: Set<String>): Map<String, Availability> = coroutineScope {
     val availabilities: List<Availability> = manufacturers
         .map { async { fetchAvailability(it) } }
         .awaitAll()
         .flatten()
-    return availabilities.associateBy { it.id }
+    availabilities.associateBy { it.id }
 }
 
 fun toDomTableRow(product: Product, availability: Availability?): String =
