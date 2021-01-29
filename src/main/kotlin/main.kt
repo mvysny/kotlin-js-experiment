@@ -62,9 +62,10 @@ suspend fun fetchAvailability(manufacturer: String): List<Availability> {
     val data: AvailabilitiesRaw = fetchJson("$rootUrl/availability/$manufacturer")
     require(data.code == 200) { "Failed to fetch $manufacturer: ${data.code}" }
 
+    val domParser = DOMParser()
     return data.response.map {
         // DATAPAYLOAD is a xml snippet such as "<AVAILABILITY>\n  <INSTOCKVALUE>INSTOCK</INSTOCKVALUE>\n</AVAILABILITY>"
-        val xml: Document = DOMParser().parseFromString(it.DATAPAYLOAD, "text/xml")
+        val xml: Document = domParser.parseFromString(it.DATAPAYLOAD, "text/xml")
         val availability: String = xml.getElementsByTagName("INSTOCKVALUE")[0]!!.textContent!!.trim()
         Availability(it.id.toLowerCase(), availability)
     }
