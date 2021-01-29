@@ -3,6 +3,8 @@ plugins {
     kotlin("plugin.serialization") version "1.4.21"
 }
 
+defaultTasks("clean", "build")
+
 group = "org.example"
 version = "1.0-SNAPSHOT"
 
