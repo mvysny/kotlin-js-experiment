@@ -16,6 +16,10 @@ object CS : CoroutineScope {
     override val coroutineContext: CoroutineContext get() = job
 }
 
+/**
+ * Products, fetched from `https://bad-api-assignment.reaktor.com/products/$type`
+ * using [fetchProducts].
+ */
 @Serializable
 data class Product(
     val id: String,
@@ -28,6 +32,11 @@ data class Product(
 
 val rootUrl = "https://bad-api-assignment.reaktor.com"
 
+/**
+ * Fetches the contents of given [url]. If the response http code is not 200 OK,
+ * fails with an exception.
+ * @return the Response
+ */
 suspend fun fetchAndCheck(url: String): Response {
     val response: Response = window.fetch(url).await()
     if (!response.ok) {
@@ -36,11 +45,20 @@ suspend fun fetchAndCheck(url: String): Response {
     return response
 }
 
+/**
+ * Fetches JSON from given [url] using [fetchAndCheck] and fills it into given
+ * class, performing type checks in the process.
+ * @param T the target class, must be either a [List] or a class annotated by [Serializable].
+ */
 suspend inline fun <reified T> fetchJson(url: String): T {
-    val json = fetchAndCheck(url).text().await()
+    val json: String = fetchAndCheck(url).text().await()
     return Json.decodeFromString(json)
 }
 
+/**
+ * Fetches all products of given [type].
+ * @param type one of "accessories", "jackets" or "shirts"
+ */
 suspend fun fetchProducts(type: String): List<Product> =
     fetchJson("$rootUrl/products/$type")
 
@@ -52,6 +70,11 @@ data class Availability(val id: String, val availability: String)
 
 @Serializable
 data class AvailabilityRaw(val id: String, val DATAPAYLOAD: String)
+
+/**
+ * Fetched from `https://bad-api-assignment.reaktor.com/availability/$manufacturer` using
+ * [fetchAvailability].
+ */
 @Serializable
 data class AvailabilitiesRaw(val code: Int, val response: List<AvailabilityRaw>)
 
@@ -69,7 +92,7 @@ suspend fun fetchAvailability(manufacturer: String): List<Availability> {
 }
 
 /**
- * @return map mapping Product.id to Availability for that product.
+ * @return map mapping [Product.id] to [Availability] for that product.
  */
 suspend fun fetchAvailabilities(manufacturers: Set<String>): Map<String, Availability> = coroutineScope {
     val availabilities: List<Availability> = manufacturers
