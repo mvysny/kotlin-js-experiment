@@ -32,7 +32,7 @@ val rootUrl = "https://bad-api-assignment.reaktor.com"
 suspend fun fetchAndCheck(url: String): Response {
     val response: Response = window.fetch(url).await()
     if (!response.ok) {
-        throw Exception("Failed to fetch stuff from ${url}: ${response.status} ${response.statusText}")
+        throw Exception("Failed to fetch stuff from $url: ${response.status} ${response.statusText}")
     }
     return response
 }
@@ -42,12 +42,18 @@ suspend inline fun <reified T> fetchJson(url: String): T {
     return Json.decodeFromString(json)
 }
 
+suspend fun fetchProducts(type: String): List<Product> =
+    fetchJson("$rootUrl/products/$type")
+
 fun main() {
     document.write("Hello, world!")
     CS.launch {
-        val products = async {
-            fetchJson<Array<Product>>("${rootUrl}/products/accessories")
-        }
-        println(products.await())
+        val products: List<Product> = listOf(
+            async { fetchProducts("accessories") },
+            async { fetchProducts("jackets") },
+            async { fetchProducts("shirts") })
+            .map { it.await() }
+            .flatten()
+        println(products)
     }
 }
