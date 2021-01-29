@@ -1,9 +1,11 @@
+import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import org.w3c.dom.Document
+import org.w3c.dom.Element
 import org.w3c.dom.get
 import org.w3c.dom.parsing.DOMParser
 import org.w3c.fetch.Response
@@ -81,6 +83,15 @@ suspend fun CoroutineScope.fetchAvailabilities(manufacturers: Set<String>): Map<
     return availabilities.associateBy { it.id }
 }
 
+fun toDomTableRow(product: Product, availability: Availability?): String =
+    """<tr>
+    <td>${product.name}</td>
+    <td>${product.type}</td>
+    <td>${product.manufacturer}</td>
+    <td>${product.price}</td>
+    <td>${availability?.availability ?: "UNKNOWN"}</td>
+    </tr>"""
+
 fun main() {
     CS.launch {
         val products: List<Product> = listOf(
@@ -95,5 +106,9 @@ fun main() {
         val availabilities: Map<String, Availability> = fetchAvailabilities(manufacturers)
         console.log("Fetched availabilities for ${availabilities.size} products");
 
+        val tbody: Element = document.querySelector("tbody")!!
+        tbody.innerHTML = products.joinToString("") { p ->
+            toDomTableRow(p, availabilities[p.id])
+        }
     }
 }
