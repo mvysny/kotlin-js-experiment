@@ -78,7 +78,7 @@ suspend fun fetchAvailability(manufacturer: String): List<Availability> {
 suspend fun CoroutineScope.fetchAvailabilities(manufacturers: Set<String>): Map<String, Availability> {
     val availabilities: List<Availability> = manufacturers
         .map { async { fetchAvailability(it) } }
-        .map { it.await() }
+        .awaitAll()
         .flatten()
     return availabilities.associateBy { it.id }
 }
@@ -98,7 +98,7 @@ fun main() {
             async { fetchProducts("accessories") },
             async { fetchProducts("jackets") },
             async { fetchProducts("shirts") })
-            .map { it.await() }
+            .awaitAll()
             .flatten()
         console.log("Fetched ${products.size} products")
         val manufacturers: Set<String> = products.map { it.manufacturer } .toSet()
