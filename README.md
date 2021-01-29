@@ -5,7 +5,7 @@ showing the [index.html](src/main/resources/index.html) file automatically.
 It will also recompile any changes made to the `main.kt` file on the fly, reloading
 the page once the recompilation is done.
 
-Simply open the project in your Intellij (Community edition is enough) and start
+Simply open the project in your Intellij IDEA (Community edition is enough) and start
 experimenting.
 
 Demoes:
@@ -20,4 +20,4 @@ on how to use coroutines with JavaScript Promises.
 
 I'm using the [kotlinx.serialization](https://github.com/Kotlin/kotlinx.serialization)
 API to deserialize JSON into data classes, since that will also perform a validation,
-and supports deserializing to `Lists` as well.
+and supports deserializing to `List` as well (as opposed to just `Array`).
