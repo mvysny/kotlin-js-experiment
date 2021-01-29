@@ -1,9 +1,11 @@
-import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import org.w3c.dom.Document
+import org.w3c.dom.get
+import org.w3c.dom.parsing.DOMParser
 import org.w3c.fetch.Response
 import kotlin.coroutines.*
 import kotlin.js.Promise
@@ -22,7 +24,7 @@ data class Product(
     val id: String,
     val type: String,
     val name: String,
-    val color: Array<String>,
+    val color: List<String>,
     val price: Int,
     val manufacturer: String
 )
@@ -45,8 +47,41 @@ suspend inline fun <reified T> fetchJson(url: String): T {
 suspend fun fetchProducts(type: String): List<Product> =
     fetchJson("$rootUrl/products/$type")
 
+/**
+ * @property id References [Product.id]
+ * @property availability "INSTOCK" | "LESSTHAN10" | "OUTOFSTOCK"
+ */
+data class Availability(val id: String, val availability: String)
+
+@Serializable
+data class AvailabilityRaw(val id: String, val DATAPAYLOAD: String)
+@Serializable
+data class AvailabilitiesRaw(val code: Int, val response: List<AvailabilityRaw>)
+
+suspend fun fetchAvailability(manufacturer: String): List<Availability> {
+    val data: AvailabilitiesRaw = fetchJson("$rootUrl/availability/$manufacturer")
+    require(data.code == 200) { "Failed to fetch $manufacturer: ${data.code}" }
+
+    return data.response.map {
+        // DATAPAYLOAD is a xml snippet such as "<AVAILABILITY>\n  <INSTOCKVALUE>INSTOCK</INSTOCKVALUE>\n</AVAILABILITY>"
+        val xml: Document = DOMParser().parseFromString(it.DATAPAYLOAD, "text/xml")
+        val availability: String = xml.getElementsByTagName("INSTOCKVALUE")[0]!!.textContent!!.trim()
+        Availability(it.id.toLowerCase(), availability)
+    }
+}
+
+/**
+ * @return map mapping Product.id to Availability for that product.
+ */
+suspend fun CoroutineScope.fetchAvailabilities(manufacturers: Set<String>): Map<String, Availability> {
+    val availabilities: List<Availability> = manufacturers
+        .map { async { fetchAvailability(it) } }
+        .map { it.await() }
+        .flatten()
+    return availabilities.associateBy { it.id }
+}
+
 fun main() {
-    document.write("Hello, world!")
     CS.launch {
         val products: List<Product> = listOf(
             async { fetchProducts("accessories") },
@@ -54,6 +89,11 @@ fun main() {
             async { fetchProducts("shirts") })
             .map { it.await() }
             .flatten()
-        println(products)
+        console.log("Fetched ${products.size} products")
+        val manufacturers: Set<String> = products.map { it.manufacturer } .toSet()
+        console.log("Fetching availabilities for $manufacturers")
+        val availabilities: Map<String, Availability> = fetchAvailabilities(manufacturers)
+        console.log("Fetched availabilities for ${availabilities.size} products");
+
     }
 }
