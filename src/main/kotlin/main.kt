@@ -52,7 +52,11 @@ suspend fun fetchAndCheck(url: String): Response {
  */
 suspend inline fun <reified T> fetchJson(url: String): T {
     val json: String = fetchAndCheck(url).text().await()
-    return Json.decodeFromString(json)
+    return try {
+        Json.decodeFromString(json)
+    } catch (e: Exception) {
+        throw RuntimeException("Failed to decode $url to JSON ${T::class}: $e", e)
+    }
 }
 
 /**
