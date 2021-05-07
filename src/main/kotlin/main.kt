@@ -91,7 +91,7 @@ suspend fun fetchAvailability(manufacturer: String): List<Availability> {
         // DATAPAYLOAD is a xml snippet such as "<AVAILABILITY>\n  <INSTOCKVALUE>INSTOCK</INSTOCKVALUE>\n</AVAILABILITY>"
         val xml: Document = domParser.parseFromString(it.DATAPAYLOAD, "text/xml")
         val availability: String = xml.getElementsByTagName("INSTOCKVALUE")[0]!!.textContent!!.trim()
-        Availability(it.id.toLowerCase(), availability)
+        Availability(it.id.lowercase(), availability)
     }
 }
 
