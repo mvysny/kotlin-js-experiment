@@ -1,6 +1,6 @@
 plugins {
-    id("org.jetbrains.kotlin.js") version "1.5.10"
-    kotlin("plugin.serialization") version "1.5.10"
+    id("org.jetbrains.kotlin.js") version "1.5.30"
+    kotlin("plugin.serialization") version "1.5.30"
 }
 
 defaultTasks("clean", "build")
@@ -14,8 +14,8 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib-js"))
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-js:1.5.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-js:1.5.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.2")
     testImplementation(kotlin("test-js"))
 }
 
